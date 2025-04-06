@@ -3,16 +3,22 @@ const fs = require("fs");
 const FILE_PATH = require("path").join(__dirname, "users.json");
 
 function findUsers() {
-    try {
-        return require("./users.json");        
-    }
-    catch(ex) {
+    // try {
+    //     return require("./users.json");        
+    // }
+    // catch(ex) {
+    //     return [];
+    // }
+    if (!fs.existsSync(FILE_PATH))
         return [];
-    }
+
+    const rawData = fs.readFileSync(FILE_PATH);
+    return JSON.parse(rawData);
 }
 
 function findUser(id) {
-    return findUsers.find(item => item.id === id);
+    const users = findUsers(); 
+    return users.find(item => item.id === id);
 }
 
 function insertUser(user) {
@@ -24,21 +30,48 @@ function insertUser(user) {
 }
 
 function updateUser(id, user) {
-    global.users.forEach((item, index, array) => {
-        if (item.id === id) {
-            user.id = id;
-            array[index] = user;
-        }
-    });
+    const users = findUsers();
+    // users.forEach((item, index, array) => {
+    //     if (item.id === id) {
+    //         user.id = id;
+    //         array[index] = user;
+    //     }
+    // });
+    const index = users.findIndex(item => item.id === id);
 
-    return user;
+    if (index === -1)
+        return {};
+    
+    users[index] = user;
+
+    users[index].id = id;
+    fs.writeFileSync(FILE_PATH, JSON.stringify(users));
+    return users[index];
+}
+
+function updatePartialUser(id, user) {
+    const users = findUsers();
+    const index = users.findIndex(item => item.id === id);
+
+    if (index === -1)
+        return {};
+    
+    for(let key in user) {
+        users[index][key] = user[key];
+    }
+
+    users[index].id = id;
+    fs.writeFileSync(FILE_PATH, JSON.stringify(users));
+    return users[index];
 }
 
 function deleteUser(id) {
-    return global.users.forEach((item, index, array) => {
+    const users = findUsers();
+    users.forEach((item, index, array) => {
         if (item.id === id)
             array.splice(index, 1);
     });
+    fs.writeFileSync(FILE_PATH, JSON.stringify(users));
 }
 
 module.exports = {
@@ -46,5 +79,6 @@ module.exports = {
     findUser,
     insertUser,
     updateUser,
+    updatePartialUser,
     deleteUser
 }
