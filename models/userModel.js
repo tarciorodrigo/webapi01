@@ -1,6 +1,6 @@
 const { v4 } = require("uuid");
 const fs = require("fs");
-const FILE_PATH = require("path").join(__dirname, "users.json");
+const FILE_PATH = require("path").join(__dirname, "..", "data", "users.json");
 
 function findUsers() {
     // try {

@@ -1,10 +1,12 @@
 const express = require('express');
 const bodyParser = require('body-parser')
 const router = express.Router();
-const db = require("../db");
-
+const db = require("../models/userModel");
+const userSchema = require("../models/userSchema");
+const validationMiddleware = require("../middlewares/validationMiddleware");
 // create application/json parser
 var jsonParser = bodyParser.json()
+
 
 /* GET users listing. */
 router.get('/:id', (req, res, next) => {
@@ -19,20 +21,34 @@ router.get('/', (req, res, next) => {
   res.status(200).json(users);
 });
 
-router.post('/', jsonParser ,(request, response) => {
-  console.log("corpo1: " + request.body);
+// Validação sem o middleware
+// router.post('/', jsonParser ,(request, response) => {
+//   const { error } = userSchema.validate(request.body);
+
+//   if (error)
+//     return response.status(422).json({ error: error.details });
+
+//   const user = db.insertUser(request.body);
+//   response.status(201).json(user);
+// });
+
+router.post('/', jsonParser, validationMiddleware ,(request, response) => {
+  const { error } = userSchema.validate(request.body);
+
+  if (error)
+    return response.status(422).json({ error: error.details });
+
   const user = db.insertUser(request.body);
-  console.log("corpo2: " + user);
   response.status(201).json(user);
 });
 
-router.put('/:id', jsonParser, (req, res, next) => {
+router.put('/:id', jsonParser, validationMiddleware, (req, res, next) => {
   const id = req.params.id;
   const user = db.updateUser(id, req.body);
   res.status(200).json(user);
 });
 
-router.patch('/:id', jsonParser, (req, res, next) => {
+router.patch('/:id', jsonParser, validationMiddleware, (req, res, next) => {
   const id = req.params.id;
   const user = db.updatePartialUser(id, req.body);
   res.status(200).json(user);
