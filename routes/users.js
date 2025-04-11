@@ -1,25 +1,16 @@
 const express = require('express');
 const bodyParser = require('body-parser')
 const router = express.Router();
-const db = require("../models/userModel");
-const userSchema = require("../models/userSchema");
+const userController = require("../controllers/userController");
 const validationMiddleware = require("../middlewares/validationMiddleware");
 // create application/json parser
 var jsonParser = bodyParser.json()
 
 
 /* GET users listing. */
-router.get('/:id', (req, res, next) => {
-  const id = req.params.id;
-  const user = db.findUser(id);
-  res.status(200).json(user);
-});
+router.get('/:id', userController.getUserById);
 
-router.get('/', (req, res, next) => {
-  const users = db.findUsers();
-  console.log(users)
-  res.status(200).json(users);
-});
+router.get('/', userController.getUsers);
 
 // Validação sem o middleware
 // router.post('/', jsonParser ,(request, response) => {
@@ -32,32 +23,12 @@ router.get('/', (req, res, next) => {
 //   response.status(201).json(user);
 // });
 
-router.post('/', jsonParser, validationMiddleware ,(request, response) => {
-  const { error } = userSchema.validate(request.body);
+router.post('/', jsonParser, validationMiddleware, userController.postUser);
 
-  if (error)
-    return response.status(422).json({ error: error.details });
+router.put('/:id', jsonParser, validationMiddleware, userController.putUser);
 
-  const user = db.insertUser(request.body);
-  response.status(201).json(user);
-});
+router.patch('/:id', jsonParser, validationMiddleware, userController.patchUser);
 
-router.put('/:id', jsonParser, validationMiddleware, (req, res, next) => {
-  const id = req.params.id;
-  const user = db.updateUser(id, req.body);
-  res.status(200).json(user);
-});
-
-router.patch('/:id', jsonParser, validationMiddleware, (req, res, next) => {
-  const id = req.params.id;
-  const user = db.updatePartialUser(id, req.body);
-  res.status(200).json(user);
-});
-
-router.delete('/:id', (req, res, next) => {
-  const id = req.params.id;
-  db.deleteUser(id);
-  res.status(200).json();
-});
+router.delete('/:id', userController.deleteUser);
 
 module.exports = router;
